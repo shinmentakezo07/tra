@@ -587,13 +587,17 @@ const updates = [
 
 function LiveTicker() {
     const [index, setIndex] = useState(0);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const timer = setInterval(() => {
             setIndex((prev) => (prev + 1) % updates.length);
         }, 3000);
         return () => clearInterval(timer);
     }, []);
+
+    if (!mounted) return null;
 
     return (
         <div className="fixed top-24 right-4 lg:right-8 z-40 pointer-events-none hidden sm:block">
