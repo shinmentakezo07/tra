@@ -25,13 +25,21 @@ export default function CodeEditor({ initialCode, language }: CodeEditorProps) {
         script.onload = async () => {
             try {
                 // @ts-ignore
-                const py = await loadPyodide();
+                const py = await loadPyodide({
+                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
+                });
                 setPyodide(py);
             } catch (e) {
                 console.error("Failed to load pyodide", e);
+                setOutput(`Failed to load Python runtime: ${e instanceof Error ? e.message : String(e)}`);
             } finally {
                 pyodideLoadingRef.current = false;
             }
+        };
+        script.onerror = () => {
+            console.error("Failed to load pyodide script");
+            setOutput("Failed to load Python runtime script.");
+            pyodideLoadingRef.current = false;
         };
         document.body.appendChild(script);
     }
