@@ -15,11 +15,36 @@ import {
   Maximize2,
   Minimize2,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Save,
+  Upload,
+  Share2,
+  BookOpen,
+  Settings,
+  Palette,
+  Layout,
+  Sparkles,
+  Zap,
+  Code2,
+  FileText,
+  Star,
+  BarChart3,
+  Moon,
+  Sun,
+  Monitor,
+  Columns,
+  X
 } from "lucide-react";
 import Terminal from "./Terminal";
 import { Terminal as XTerminal } from "xterm";
 import { Icons } from "../icons";
+import ThemeSelector, { EditorTheme } from "./ThemeSelector";
+import LayoutSelector, { LayoutMode } from "./LayoutSelector";
+import SnippetsModal from "./SnippetsModal";
+import { CodeSnippet } from "./CodeSnippets";
+import ShareModal from "./ShareModal";
+import PerformanceMetrics from "./PerformanceMetrics";
+import { saveSession, loadSession, hasSession, AutoSaver } from "@/lib/playground-storage";
 
 const LANGUAGES = {
   python: {
@@ -243,13 +268,57 @@ export default function PlaygroundMain() {
   const [showHistory, setShowHistory] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   
+  // New enhanced features
+  const [editorTheme, setEditorTheme] = useState<EditorTheme>("vs-dark");
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("vertical");
+  const [showSnippets, setShowSnippets] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [executionTimeMs, setExecutionTimeMs] = useState(0);
+  
   const terminalRef = useRef<XTerminal | null>(null);
   const codeCache = useRef<Record<string, string>>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const autoSaverRef = useRef<AutoSaver | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // Load saved session on mount
+    const savedSession = loadSession();
+    if (savedSession && hasSession()) {
+      const langKey = Object.keys(LANGUAGES).find(
+        key => LANGUAGES[key as LanguageKey].name === savedSession.language
+      ) as LanguageKey;
+      
+      if (langKey) {
+        setActiveLang(langKey);
+        setCode(savedSession.code);
+        codeCache.current[langKey] = savedSession.code;
+      }
+    }
+    
+    // Initialize auto-saver
+    autoSaverRef.current = new AutoSaver(() => {
+      saveSession({
+        language: LANGUAGES[activeLang].name,
+        code,
+        timestamp: Date.now()
+      });
+      setLastSaved(new Date());
+    });
+    
+    return () => {
+      autoSaverRef.current?.cancel();
+    };
   }, []);
+  
+  // Auto-save on code change
+  useEffect(() => {
+    if (isMounted && code) {
+      autoSaverRef.current?.schedule();
+    }
+  }, [code, isMounted, activeLang]);
 
   const handleLangChange = (lang: LanguageKey) => {
     codeCache.current[activeLang] = code;
@@ -302,6 +371,11 @@ export default function PlaygroundMain() {
       setIsFullscreen(false);
     }
   };
+  
+  const handleSnippetSelect = (snippet: CodeSnippet) => {
+    setCode(snippet.code);
+    codeCache.current[activeLang] = snippet.code;
+  };
 
   const runCode = useCallback(async () => {
     if (isRunning) return;
@@ -341,6 +415,7 @@ export default function PlaygroundMain() {
 
       const result = await response.json();
       const executionTime = Date.now() - startTime;
+      setExecutionTimeMs(executionTime);
       
       if (terminalRef.current) {
         if (result.run) {
@@ -401,20 +476,35 @@ export default function PlaygroundMain() {
   if (!isMounted) return null;
 
   return (
-    <div 
-      ref={containerRef}
-      className="flex flex-col md:flex-row h-[calc(100vh-140px)] md:h-[calc(100vh-100px)] bg-[#0a0a0a] text-gray-300 overflow-hidden rounded-xl border border-white/10 relative"
-    >
-      {/* Language Sidebar */}
-      <div className="w-full md:w-14 bg-[#0a0a0a] border-b md:border-b-0 md:border-r border-white/10 flex flex-row md:flex-col items-center py-2 md:py-3 gap-1 z-10 overflow-x-auto px-2 md:px-0">
+    <>
+      {/* Modals */}
+      <SnippetsModal
+        isOpen={showSnippets}
+        onClose={() => setShowSnippets(false)}
+        currentLanguage={LANGUAGES[activeLang].mode}
+        onSelectSnippet={handleSnippetSelect}
+      />
+      <ShareModal
+        isOpen={showShare}
+        onClose={() => setShowShare(false)}
+        code={code}
+        language={LANGUAGES[activeLang].name}
+      />
+      
+      <div 
+        ref={containerRef}
+        className="flex flex-col md:flex-row h-[calc(100vh-240px)] md:h-[calc(100vh-220px)] bg-[#0A0A0A] overflow-hidden rounded-2xl border border-white/10 relative shadow-2xl"
+      >
+      {/* Language Sidebar - Dark theme */}
+      <div className="w-full md:w-20 bg-[#0A0A0A] border-b md:border-b-0 md:border-r border-white/10 flex flex-row md:flex-col items-center py-4 md:py-5 gap-3 z-10 overflow-x-auto px-3 md:px-0">
         {Object.entries(LANGUAGES).map(([key, lang]) => (
           <button
             key={key}
             onClick={() => handleLangChange(key as LanguageKey)}
-            className={`p-2 rounded-lg transition-all shrink-0 ${
+            className={`relative p-3 rounded-xl transition-all shrink-0 ${
               activeLang === key 
-                ? "bg-white/10 text-white" 
-                : "text-gray-500 hover:text-white hover:bg-white/5"
+                ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                : "text-gray-500 hover:text-white hover:bg-white/10"
             }`}
             title={lang.name}
           >
@@ -425,43 +515,84 @@ export default function PlaygroundMain() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Toolbar */}
-        <div className="h-12 bg-[#0a0a0a] border-b border-white/10 flex items-center justify-between px-3 shrink-0">
+        {/* Dark Toolbar */}
+        <div className="h-14 bg-[#0A0A0A] border-b border-white/10 flex items-center justify-between px-5 shrink-0">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-white flex items-center gap-2">
+            {/* Window Controls */}
+            <div className="flex items-center gap-2 mr-4">
+              <div className="w-3 h-3 rounded-full bg-red-500/50 hover:bg-red-500 transition-colors" />
+              <div className="w-3 h-3 rounded-full bg-yellow-500/50 hover:bg-yellow-500 transition-colors" />
+              <div className="w-3 h-3 rounded-full bg-green-500/50 hover:bg-green-500 transition-colors" />
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
               {LANGUAGES[activeLang].icon}
-              {LANGUAGES[activeLang].name}
-            </span>
+              <span className="text-sm font-semibold text-white">
+                {LANGUAGES[activeLang].name}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-1">
-            {/* Mobile Tab Switcher */}
-            <div className="flex md:hidden bg-white/5 rounded-lg p-0.5 mr-2">
+            {/* Dark Tab Switcher */}
+            <div className="flex md:hidden bg-white/5 border border-white/10 rounded-lg p-1 mr-2">
               <button
                 onClick={() => setMobileTab("editor")}
-                className={`px-3 py-1 text-xs font-medium rounded ${mobileTab === "editor" ? "bg-white/10 text-white" : "text-gray-500"}`}
+                className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                  mobileTab === "editor" ? "bg-primary text-white shadow-sm" : "text-gray-400 hover:text-white"
+                }`}
               >
                 Code
               </button>
               <button
                 onClick={() => setMobileTab("output")}
-                className={`px-3 py-1 text-xs font-medium rounded ${mobileTab === "output" ? "bg-white/10 text-white" : "text-gray-500"}`}
+                className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                  mobileTab === "output" ? "bg-primary text-white shadow-sm" : "text-gray-400 hover:text-white"
+                }`}
               >
                 Output
               </button>
             </div>
 
-            {/* Action Buttons */}
-            <button onClick={copyCode} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Copy code">
+            {/* New Feature Buttons */}
+            <button 
+              onClick={() => setShowSnippets(true)} 
+              className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all hidden md:block" 
+              title="Code Snippets"
+            >
+              <BookOpen className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setShowShare(true)} 
+              className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all hidden sm:block" 
+              title="Share Code"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+            
+            {/* Theme Selector */}
+            <div className="hidden md:block">
+              <ThemeSelector currentTheme={editorTheme} onThemeChange={setEditorTheme} />
+            </div>
+            
+            {/* Layout Selector */}
+            <div className="hidden lg:block">
+              <LayoutSelector currentLayout={layoutMode} onLayoutChange={setLayoutMode} />
+            </div>
+
+            <div className="w-px h-6 bg-white/20 mx-2 hidden sm:block" />
+
+            {/* Dark Action Buttons */}
+            <button onClick={copyCode} className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all" title="Copy code">
               {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
             </button>
-            <button onClick={downloadCode} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all hidden sm:block" title="Download">
+            <button onClick={downloadCode} className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all hidden sm:block" title="Download">
               <Download className="w-4 h-4" />
             </button>
-            <button onClick={resetCode} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Reset code">
+            <button onClick={resetCode} className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all" title="Reset code">
               <RotateCcw className="w-4 h-4" />
             </button>
-            <button onClick={toggleFullscreen} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all hidden md:block" title="Fullscreen">
+            <button onClick={toggleFullscreen} className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all hidden md:block" title="Fullscreen">
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
             
@@ -469,17 +600,20 @@ export default function PlaygroundMain() {
             <div className="relative hidden sm:block">
               <button 
                 onClick={() => setShowHistory(!showHistory)}
-                className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                 title="History"
               >
                 <Clock className="w-4 h-4" />
               </button>
               {showHistory && executionHistory.length > 0 && (
-                <div className="absolute right-0 top-full mt-1 w-48 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl z-50 py-1">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-[#1a1a1a] border border-white/20 rounded-xl shadow-2xl z-50 py-2 backdrop-blur-xl">
+                  <div className="px-3 py-2 border-b border-white/10 mb-1">
+                    <span className="text-xs font-semibold text-gray-400 uppercase">Execution History</span>
+                  </div>
                   {executionHistory.slice().reverse().map((item, i) => (
-                    <div key={i} className="px-3 py-2 text-xs flex items-center justify-between hover:bg-white/5">
-                      <span className="text-gray-400">{item.language}</span>
-                      <span className={item.success ? "text-green-500" : "text-red-500"}>
+                    <div key={i} className="px-3 py-2 text-xs flex items-center justify-between hover:bg-white/5 transition-colors">
+                      <span className="text-gray-300 font-medium">{item.language}</span>
+                      <span className={`font-semibold ${item.success ? "text-green-400" : "text-red-400"}`}>
                         {item.executionTime}ms
                       </span>
                     </div>
@@ -488,37 +622,53 @@ export default function PlaygroundMain() {
               )}
             </div>
 
-            <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
+            <div className="w-px h-6 bg-white/20 mx-2 hidden sm:block" />
             
-            {/* Run Button */}
+            {/* Cyber Run Button */}
             <button 
               onClick={runCode}
               disabled={isRunning}
-              className="flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded-lg transition-all disabled:opacity-50 hover:bg-gray-200"
+              className="relative group/btn flex items-center gap-2 px-6 py-2 text-black text-sm font-bold font-mono tracking-wider rounded-lg transition-all disabled:opacity-50 overflow-hidden uppercase"
             >
-              {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-              <span className="hidden sm:inline">Run</span>
+              {/* Background */}
+              <div className="absolute inset-0 bg-white group-hover/btn:bg-cyan-400 transition-all duration-300" />
+              
+              {/* Shine Effect */}
+              <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+              
+              <div className="relative z-10 flex items-center gap-2">
+                {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                <span className="hidden sm:inline">Run</span>
+              </div>
             </button>
           </div>
         </div>
 
         {/* Workspace */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          {/* Editor */}
-          <div className={`flex-1 relative min-h-0 border-b lg:border-b-0 lg:border-r border-white/10 
-            ${activeLang === 'html' ? 'lg:w-1/2' : 'lg:w-3/5'}
+        <div className={`flex-1 flex overflow-hidden ${
+          layoutMode === 'horizontal' ? 'flex-col' : 
+          layoutMode === 'vertical' ? 'flex-col lg:flex-row' :
+          layoutMode === 'editor-focus' ? 'flex-col lg:flex-row' :
+          'flex-col lg:flex-row'
+        }`}>
+          {/* Editor - Dark theme */}
+          <div className={`relative min-h-0 border-b lg:border-b-0 lg:border-r border-white/10 bg-[#050505]
+            ${layoutMode === 'editor-focus' ? 'flex-[3]' : 
+              layoutMode === 'terminal-focus' ? 'flex-[1]' :
+              activeLang === 'html' ? 'lg:w-1/2' : 'lg:w-3/5'}
             ${mobileTab === 'editor' ? 'flex' : 'hidden lg:flex'}
+            ${layoutMode === 'horizontal' ? 'border-b border-r-0' : ''}
           `}>
             <Editor
               height="100%"
               language={LANGUAGES[activeLang].mode}
               value={code}
               onChange={(val) => setCode(val || "")}
-              theme="vs-dark"
+              theme={editorTheme}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
-                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                fontFamily: "'JetBrains Mono', 'Fira Code', 'Monaco', monospace",
                 lineHeight: 1.6,
                 padding: { top: 16 },
                 scrollBeyondLastLine: false,
@@ -532,14 +682,16 @@ export default function PlaygroundMain() {
               }}
             />
             {/* Keyboard shortcut hint */}
-            <div className="absolute bottom-3 right-3 text-[10px] text-gray-600 hidden lg:block">
-              Ctrl+Enter to run
+            <div className="absolute bottom-3 right-3 px-3 py-1.5 bg-black/80 backdrop-blur-sm rounded-lg text-[10px] text-gray-400 border border-white/10 hidden lg:block font-mono">
+              Ctrl + Enter to run
             </div>
           </div>
 
-          {/* Output / Preview */}
-          <div className={`flex-1 bg-[#0a0a0a] flex flex-col 
-            ${activeLang === 'html' ? 'lg:w-1/2' : 'lg:w-2/5'}
+          {/* Output / Preview - Dark theme */}
+          <div className={`bg-[#0A0A0A] flex flex-col 
+            ${layoutMode === 'terminal-focus' ? 'flex-[3]' : 
+              layoutMode === 'editor-focus' ? 'flex-[1]' :
+              activeLang === 'html' ? 'lg:w-1/2' : 'lg:w-2/5'}
             ${mobileTab === 'output' ? 'flex' : 'hidden lg:flex'}
           `}>
             {activeLang === 'html' ? (
@@ -551,7 +703,7 @@ export default function PlaygroundMain() {
                     sandbox="allow-scripts allow-modals"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-[#0a0a0a]">
+                  <div className="w-full h-full flex items-center justify-center bg-[#0A0A0A]">
                     <div className="text-center text-gray-500">
                       <Globe className="w-12 h-12 mx-auto mb-3 opacity-50" />
                       <p className="text-sm">Click Run to preview</p>
@@ -561,16 +713,17 @@ export default function PlaygroundMain() {
               </div>
             ) : (
               <>
-                <div className="h-10 bg-[#0a0a0a] flex items-center justify-between px-3 border-b border-white/10 shrink-0">
-                  <span className="text-xs font-medium text-gray-400 flex items-center gap-2">
-                    <TerminalIcon className="w-3.5 h-3.5" /> Output
-                  </span>
+                <div className="h-12 bg-[#0A0A0A] flex items-center justify-between px-4 border-b border-white/10 shrink-0">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+                    <TerminalIcon className="w-4 h-4 text-green-400" />
+                    <span className="text-xs font-semibold text-white">Output</span>
+                  </div>
                   <button 
                     onClick={() => terminalRef.current?.clear()}
-                    className="p-1 hover:bg-white/5 rounded transition-colors"
+                    className="p-2 hover:bg-white/10 rounded-lg transition-all"
                     title="Clear"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-white" />
+                    <Trash2 className="w-4 h-4 text-gray-500 hover:text-white" />
                   </button>
                 </div>
                 <div className="flex-1 relative min-h-0">
@@ -581,6 +734,22 @@ export default function PlaygroundMain() {
           </div>
         </div>
       </div>
+      
+      {/* Performance Metrics & Status Bar */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <PerformanceMetrics 
+          executionTime={executionTimeMs} 
+          linesOfCode={code.split('\n').length}
+        />
+        
+        {lastSaved && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-400">
+            <Save className="w-3 h-3" />
+            <span>Auto-saved {new Date(lastSaved).toLocaleTimeString()}</span>
+          </div>
+        )}
+      </div>
     </div>
+    </>
   );
 }

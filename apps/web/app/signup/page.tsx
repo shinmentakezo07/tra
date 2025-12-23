@@ -36,7 +36,7 @@ function SocialButton({ icon, label, provider }: { icon: React.ReactNode; label:
 
 function PasswordStrength({ password }: { password: string }) {
   const requirements = [
-    { label: "At least 8 characters", met: password.length >= 8 },
+    { label: "At least 6 characters", met: password.length >= 6 },
     { label: "Contains a number", met: /\d/.test(password) },
     { label: "Contains uppercase", met: /[A-Z]/.test(password) },
   ];
@@ -240,7 +240,7 @@ export default function SignupPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Create a password"
                   required
-                  minLength={8}
+                  minLength={6}
                   autoComplete="new-password"
                   className="w-full h-12 pl-10 pr-10 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/10 transition-all text-sm font-mono"
                 />

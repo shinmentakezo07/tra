@@ -293,81 +293,169 @@ export default function Home() {
       </section>
       
       {/* --- PRICING SECTION --- */}
-      <section id="pricing" className="w-full py-32 px-4 relative z-20 bg-[#050505]">
+      <section id="pricing" className="w-full py-32 px-4 relative z-20 bg-[#050505] overflow-hidden">
+           {/* Cyberpunk Background */}
            <div className="absolute inset-0 -z-10 overflow-hidden">
-               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-violet-600/10 via-transparent to-transparent rounded-full blur-[120px]" />
-               <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+               {/* Moving Grid */}
+               <div className="absolute inset-0 perspective-1000">
+                   <motion.div 
+                       animate={{ backgroundPosition: ["0px 0px", "0px 40px"] }}
+                       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                       className="absolute inset-0 bg-grid-white opacity-[0.15] transform-gpu rotate-x-12 scale-150 origin-top"
+                   />
+               </div>
+               
+               {/* Vignette */}
+               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_100%)]" />
+               
+               {/* Accent Glows */}
+               <motion.div 
+                   animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.2, 1] }}
+                   transition={{ duration: 8, repeat: Infinity }}
+                   className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-violet-600/20 rounded-full blur-[150px]" 
+               />
+               <motion.div 
+                   animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.3, 1] }}
+                   transition={{ duration: 10, repeat: Infinity, delay: 1 }}
+                   className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-fuchsia-600/20 rounded-full blur-[150px]" 
+               />
            </div>
            
            <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-20">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="inline-block mb-4 px-3 py-1 rounded border border-violet-500/30 bg-violet-500/10 text-violet-400 text-[10px] font-mono font-bold tracking-widest uppercase"
+                        className="group inline-flex items-center gap-3 px-3 py-1.5 rounded bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all cursor-default hover:border-violet-500/50 mb-6"
                     >
-                        System Access
+                        <div className="flex items-center gap-2 px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-400 text-[10px] font-mono font-bold">
+                            <Crown className="w-3 h-3" />
+                            ACCESS
+                        </div>
+                        <span className="text-xs font-mono text-gray-400 tracking-wide group-hover:text-white transition-colors uppercase">
+                            SYSTEM TIER SELECTION // INITIALIZE
+                        </span>
                     </motion.div>
                     <motion.h2 
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight"
+                        className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[0.9] text-white mb-6"
                     >
-                        Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">Protocol</span>
+                        Choose Your{" "}
+                        <span className="relative inline-block text-6xl md:text-8xl lg:text-9xl font-black">
+                            <span className="relative inline-block">
+                                PROTOCOL
+                                {/* Glitch effect */}
+                                <span className="absolute inset-0 text-violet-500 opacity-70 blur-[2px] animate-pulse" aria-hidden="true">
+                                    PROTOCOL
+                                </span>
+                                <span className="absolute inset-0 text-fuchsia-400 translate-x-0.5 translate-y-0.5 opacity-50" aria-hidden="true">
+                                    PROTOCOL
+                                </span>
+                            </span>
+                        </span>
                     </motion.h2>
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 }}
+                        className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed"
+                    >
+                        Select your access tier and unlock the full potential of our platform.
+                        <span className="text-white font-medium"> Flexible plans</span> for every journey.
+                    </motion.p>
                 </div>
 
-                {/* Toggle */}
+                {/* Cyber Toggle */}
                 <motion.div 
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
                     className="flex justify-center mb-16"
                 >
-                    <div className="relative p-1 rounded bg-white/5 border border-white/10 flex">
-                        <div 
-                            className={`absolute top-1 bottom-1 rounded bg-violet-600 transition-all duration-300 ${billingCycle === 'monthly' ? 'left-1 w-[calc(50%-4px)]' : 'left-[50%] w-[calc(50%-4px)]'}`}
-                        />
+                    <div className="p-1 bg-white/5 border border-white/10 rounded flex backdrop-blur-sm">
                         <button 
                             onClick={() => setBillingCycle('monthly')}
-                            className="relative z-10 px-6 py-2 text-sm font-mono font-medium text-white transition-colors w-32"
+                            className={`relative group px-8 py-3 font-mono text-sm font-bold tracking-wider transition-all flex items-center justify-center gap-2 ${
+                                billingCycle === 'monthly' ? 'text-black' : 'text-white'
+                            }`}
                         >
-                            Monthly
+                            <div className={`absolute inset-0 transition-all duration-300 ${
+                                billingCycle === 'monthly' ? "bg-white" : "bg-white/5 hover:bg-white/10"
+                            }`} />
+                            {billingCycle === 'monthly' && (
+                                <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                            )}
+                            <span className="relative z-10">MONTHLY</span>
                         </button>
                         <button 
                             onClick={() => setBillingCycle('yearly')}
-                            className="relative z-10 px-6 py-2 text-sm font-mono font-medium text-white transition-colors w-32 flex items-center justify-center gap-2"
+                            className={`relative group px-8 py-3 font-mono text-sm font-bold tracking-wider transition-all flex items-center justify-center gap-2 ${
+                                billingCycle === 'yearly' ? 'text-black' : 'text-white'
+                            }`}
                         >
-                            Yearly
-                            <span className="text-[9px] bg-green-500 text-black px-1 rounded font-bold">-20%</span>
+                            <div className={`absolute inset-0 transition-all duration-300 ${
+                                billingCycle === 'yearly' ? "bg-white" : "bg-white/5 hover:bg-white/10"
+                            }`} />
+                            {billingCycle === 'yearly' && (
+                                <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                            )}
+                            <span className="relative z-10">YEARLY</span>
+                            <span className="relative z-10 text-[9px] bg-green-500 text-black px-1.5 py-0.5 rounded font-bold">-20%</span>
                         </button>
                     </div>
                 </motion.div>
 
-                {/* Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Enhanced Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {pricingPlans.map((plan, i) => (
                         <motion.div
                             key={plan.name}
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ delay: i * 0.1 }}
-                            className={`relative flex flex-col p-1 rounded-2xl ${
+                            transition={{ delay: i * 0.15 }}
+                            whileHover={{ y: -8 }}
+                            className="relative flex flex-col group"
+                        >
+                            {/* Glow Effect */}
+                            <div className={`absolute inset-0 rounded-2xl blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500 ${
+                                plan.popular 
+                                    ? 'bg-violet-600/30' 
+                                    : 'bg-blue-600/20'
+                            }`} />
+                            
+                            {/* Card Container */}
+                            <div className={`relative flex flex-col h-full p-1 rounded-2xl ${
                                 plan.popular 
                                 ? 'bg-gradient-to-b from-violet-500 to-fuchsia-600' 
                                 : 'bg-white/10'
-                            }`}
-                        >
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-white/50 blur-sm" />
-                            
-                            <div className="h-full bg-[#0A0A0A] rounded-xl p-8 flex flex-col relative overflow-hidden">
-                                {/* Grid Overlay */}
-                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px] opacity-20" />
+                            }`}>
+                                {/* Top Accent Line */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-white/50 blur-sm" />
                                 
-                                <div className="relative z-10">
+                                <div className="h-full bg-[#0A0A0A] rounded-xl p-8 flex flex-col relative overflow-hidden">
+                                    {/* Animated Grid Pattern */}
+                                    <motion.div 
+                                        className="absolute inset-0 opacity-20"
+                                        animate={{
+                                            backgroundPosition: ['0% 0%', '100% 100%'],
+                                        }}
+                                        transition={{
+                                            duration: 20,
+                                            repeat: Infinity,
+                                            repeatType: "reverse"
+                                        }}
+                                        style={{
+                                            backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+                                            backgroundSize: '20px 20px'
+                                        }}
+                                    />
+                                
+                                    <div className="relative z-10">
                                     <div className="flex items-center justify-between mb-4">
                                         <div className={`w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center ${plan.color}`}>
                                             <plan.icon className="w-6 h-6" />
@@ -408,17 +496,25 @@ export default function Home() {
                                     </ul>
 
                                     <button 
-                                        className={`w-full py-4 rounded font-mono text-sm font-bold tracking-wider transition-all relative overflow-hidden group ${
-                                            plan.popular 
-                                            ? 'bg-violet-600 text-white hover:bg-violet-500' 
-                                            : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                                        className={`relative w-full py-4 font-mono text-sm font-bold tracking-wider transition-all overflow-hidden group/btn ${
+                                            plan.popular ? 'text-black' : 'text-white'
                                         }`}
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                                        <span className="relative z-10 flex items-center justify-center gap-2">
-                                            {plan.cta} <ArrowRight className="w-4 h-4" />
+                                        {/* Background */}
+                                        <div className={`absolute inset-0 transition-all duration-300 ${
+                                            plan.popular 
+                                                ? 'bg-white group-hover/btn:bg-cyan-400' 
+                                                : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                                        }`} />
+                                        
+                                        {/* Shine Effect */}
+                                        <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                                        
+                                        <span className="relative z-10 flex items-center justify-center gap-2 uppercase">
+                                            {plan.cta} <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                                         </span>
                                     </button>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

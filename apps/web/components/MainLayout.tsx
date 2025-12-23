@@ -7,14 +7,21 @@ import Link from "next/link";
 import { X, Home, BookOpen, Code2, Trophy, LogIn, UserPlus, Zap, ArrowRight, Settings, LogOut } from "lucide-react";
 import { signOutAction } from "@/app/lib/actions";
 
+interface MenuItem {
+  label: string;
+  href: string;
+  icon: any;
+  authRequired?: boolean;
+}
+
 export function MainLayout({ children, user }: { children: React.ReactNode, user?: any }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { label: 'Tutorials', href: '/courses', icon: BookOpen },
+    { label: 'Learn', href: '/learn', icon: BookOpen },
+    { label: 'Courses', href: '/courses', icon: BookOpen },
     { label: 'Playground', href: '/playground', icon: Code2 },
-    { label: 'Exercises', href: '/learn/exercises', icon: Trophy },
-    { label: 'Pro', href: '/learn/pro', icon: Trophy },
+    { label: 'Dashboard', href: '/dashboard', icon: Trophy, authRequired: true },
   ];
 
   const sidebarVariants = {
@@ -98,7 +105,7 @@ export function MainLayout({ children, user }: { children: React.ReactNode, user
                         </div>
                     </motion.div>
                     
-                    {menuItems.map((item) => (
+                    {menuItems.filter(item => !item.authRequired || user).map((item) => (
                         <motion.div key={item.label} variants={itemVariants}>
                             <Link
                                 href={item.href}

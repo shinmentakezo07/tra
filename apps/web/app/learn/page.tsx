@@ -4,8 +4,8 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { 
-  Search, Filter, ArrowRight, BookOpen, Clock, BarChart, Code2, Star, Sparkles,
-  Trophy, Brain, Terminal, ChevronRight, Zap, Lock, Play
+  Search, Filter, ArrowRight, BookOpen, Clock, BarChart, Code2, Star, Hash,
+  Trophy, Brain, Terminal, ChevronRight, Zap, Lock, Play, Sparkles
 } from "lucide-react";
 import CodeEditor from "@/components/CodeEditor";
 
@@ -124,57 +124,94 @@ const CourseCard = ({ course }: { course: any }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
+    whileHover={{ y: -4 }}
+    transition={{ duration: 0.3 }}
     className="group relative flex flex-col h-full"
   >
-    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/0 rounded-3xl transform transition-transform group-hover:scale-[1.02] duration-300" />
-    <div className="relative h-full bg-[#0A0A0A] border border-white/10 rounded-3xl p-1 overflow-hidden hover:border-primary/50 transition-colors duration-300 flex flex-col">
+    {/* Subtle glow on hover */}
+    <div className="absolute inset-0 bg-blue-600/10 rounded-xl blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
+    
+    <div className="relative h-full bg-gradient-to-br from-[#0A0A0A] to-[#050505] border border-white/10 rounded-3xl p-1 overflow-hidden hover:border-primary/50 transition-all duration-500 flex flex-col shadow-2xl">
+      {/* Animated gradient border */}
+      <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 rounded-3xl opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-500" />
+      
       {/* Card Header */}
-      <div className={`h-32 rounded-2xl bg-gradient-to-br ${course.color} p-6 relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="absolute -right-4 -bottom-4 opacity-20 transform rotate-12 group-hover:scale-110 transition-transform duration-500">
-           <course.icon className="w-24 h-24 text-white" />
+      <div className={`h-40 rounded-2xl bg-gradient-to-br ${course.color} p-6 relative overflow-hidden`}>
+        <div className="absolute inset-0 bg-black/20" />
+        
+        {/* Animated background pattern */}
+        <motion.div 
+          className="absolute inset-0 opacity-10"
+          animate={{
+            backgroundPosition: ['0% 0%', '100% 100%'],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+          style={{
+            backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)',
+            backgroundSize: '20px 20px'
+          }}
+        />
+        
+        <div className="absolute -right-4 -bottom-4 opacity-30 transform rotate-12 group-hover:scale-125 group-hover:rotate-6 transition-all duration-700">
+           <course.icon className="w-28 h-28 text-white" />
         </div>
         
         <div className="relative z-10 flex justify-between items-start">
-            <span className="px-3 py-1 rounded-full bg-black/20 backdrop-blur-md text-white text-xs font-medium border border-white/10">
+            <span className="px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md text-white text-xs font-bold border border-white/20 uppercase tracking-wider">
                 {course.category}
             </span>
-            <div className="flex items-center gap-1 bg-black/20 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
-                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+            <motion.div 
+              whileHover={{ scale: 1.1 }}
+              className="flex items-center gap-1 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20"
+            >
+                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                 <span className="text-xs font-bold text-white">{course.rating}</span>
-            </div>
+            </motion.div>
         </div>
       </div>
 
       {/* Card Content */}
-      <div className="p-6 flex-1 flex flex-col">
-        <div className="mb-4">
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors line-clamp-1">{course.title}</h3>
-            <p className="text-sm text-gray-400 line-clamp-2">{course.description}</p>
+      <div className="p-6 flex-1 flex flex-col bg-[#0A0A0A]/50 backdrop-blur-sm rounded-2xl">
+        <div className="mb-6">
+            <h3 className="text-2xl font-black text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-600 transition-all duration-300 line-clamp-1">
+              {course.title}
+            </h3>
+            <p className="text-sm text-gray-400 leading-relaxed line-clamp-2">{course.description}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-                <BarChart className="w-4 h-4 text-primary/70" />
-                <span>{course.level}</span>
+        <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/5">
+                <BarChart className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium text-gray-300">{course.level}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-                <BookOpen className="w-4 h-4 text-primary/70" />
-                <span>{course.lessons} Lessons</span>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/5">
+                <BookOpen className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-medium text-gray-300">{course.lessons} Lessons</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Clock className="w-4 h-4 text-primary/70" />
-                <span>{course.duration}</span>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/5 col-span-2">
+                <Clock className="w-4 h-4 text-pink-400" />
+                <span className="text-xs font-medium text-gray-300">{course.duration}</span>
             </div>
         </div>
 
-        <div className="mt-auto pt-6 border-t border-white/5">
+        <div className="mt-auto pt-6 border-t border-white/10">
             <Link 
                 href={`/learn/${course.slug}`}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white/5 hover:bg-primary hover:text-white text-white font-medium transition-all duration-300 group/btn"
+                className="relative group/btn w-full flex items-center justify-between px-5 py-3 font-mono text-sm font-bold tracking-wider overflow-hidden transition-all duration-300"
             >
-                <span>Start Course</span>
-                <ArrowRight className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
+                {/* Background */}
+                <div className="absolute inset-0 bg-white group-hover/btn:bg-cyan-400 transition-all duration-300" />
+                
+                {/* Shine Effect */}
+                <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                
+                {/* Content */}
+                <span className="relative z-10 text-black">START SEQUENCE</span>
+                <ArrowRight className="w-4 h-4 relative z-10 text-black transform group-hover/btn:translate-x-1 transition-transform" />
             </Link>
         </div>
       </div>
@@ -185,35 +222,55 @@ const CourseCard = ({ course }: { course: any }) => (
 const ExerciseCard = ({ exercise, isActive, onClick }: { exercise: any, isActive: boolean, onClick: () => void }) => (
     <motion.button
         onClick={onClick}
-        className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 group relative overflow-hidden mb-4 ${
+        whileHover={{ x: 4 }}
+        whileTap={{ scale: 0.98 }}
+        className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 group relative overflow-hidden ${
             isActive 
-            ? "bg-primary/10 border-primary/50 shadow-[0_0_20px_rgba(59,130,246,0.1)]" 
-            : "bg-[#0A0A0A] border-white/5 hover:border-white/10 hover:bg-white/5"
+            ? "bg-gradient-to-br from-primary/20 to-purple-500/10 border-primary/50 shadow-[0_0_30px_rgba(59,130,246,0.2)]" 
+            : "bg-gradient-to-br from-[#0A0A0A] to-[#050505] border-white/10 hover:border-primary/30 hover:bg-white/5"
         }`}
     >
         {isActive && (
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-20" />
+          <>
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-r from-primary/20 via-purple-500/20 to-transparent"
+              animate={{ x: ['-100%', '100%'] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            />
+            <div className="absolute top-0 right-0 w-20 h-20 bg-primary/20 rounded-bl-full blur-xl" />
+          </>
         )}
         
         <div className="relative z-10">
-            <div className="flex justify-between items-center mb-2">
-                <h3 className={`font-bold transition-colors ${isActive ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+            <div className="flex justify-between items-start mb-3">
+                <h3 className={`font-bold text-base transition-colors leading-tight pr-2 ${
+                  isActive ? 'text-white' : 'text-gray-300 group-hover:text-white'
+                }`}>
                     {exercise.title}
                 </h3>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                    exercise.difficulty === "Easy" ? "bg-green-500/10 text-green-400 border-green-500/20" :
-                    exercise.difficulty === "Medium" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" :
-                    "bg-red-500/10 text-red-400 border-red-500/20"
+                <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border uppercase tracking-wider flex-shrink-0 ${
+                    exercise.difficulty === "Easy" ? "bg-green-500/20 text-green-400 border-green-500/30" :
+                    exercise.difficulty === "Medium" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" :
+                    "bg-red-500/20 text-red-400 border-red-500/30"
                 }`}>
                     {exercise.difficulty}
                 </span>
             </div>
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
-                    <Code2 className="w-3 h-3" />
+                <div className="flex items-center gap-2 text-xs font-medium text-gray-500 group-hover:text-gray-400 transition-colors">
+                    <div className={`p-1 rounded ${isActive ? 'bg-primary/20' : 'bg-white/5'}`}>
+                      <Code2 className="w-3.5 h-3.5" />
+                    </div>
                     <span className="capitalize">{exercise.language}</span>
                 </div>
-                {isActive && <ChevronRight className="w-4 h-4 text-primary animate-pulse" />}
+                {isActive && (
+                  <motion.div
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  >
+                    <ChevronRight className="w-5 h-5 text-primary" />
+                  </motion.div>
+                )}
             </div>
         </div>
     </motion.button>
@@ -303,34 +360,111 @@ export default function LearnPage() {
   [searchQuery]);
 
   return (
-    <div className="min-h-screen pt-24 px-4 pb-12 bg-[#050505] relative overflow-hidden selection:bg-primary/30 selection:text-white">
-      {/* Ambient Background */}
-       <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
+    <div className="min-h-screen pt-20 px-4 pb-12 bg-[#050505] relative overflow-hidden selection:bg-primary/30 selection:text-white">
+      {/* Cyberpunk Background matching Hero */}
+       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#050505]">
+          {/* Moving Grid like Hero */}
+          <div className="absolute inset-0 perspective-1000">
+            <motion.div 
+              animate={{ backgroundPosition: ["0px 0px", "0px 40px"] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 bg-grid-white opacity-[0.15] transform-gpu rotate-x-12 scale-150 origin-top"
+            />
+          </div>
+          
+          {/* Vignette */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000_100%)]" />
+          
+          {/* Subtle gradient orbs */}
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[150px]" 
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.3, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[150px]" 
+          />
        </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         
-        {/* Header Section */}
-        <div className="flex flex-col lg:flex-row justify-between items-end mb-12 gap-8">
+        {/* Enhanced Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="max-w-2xl"
             >
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono font-medium mb-4">
-                    <Sparkles className="w-3 h-3" />
-                    LEARNING CENTER V2.0
-                </div>
-                <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white tracking-tight">
-                  Master the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">Craft</span>
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="group inline-flex items-center gap-3 px-3 py-1.5 rounded bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all cursor-default hover:border-primary/50 mb-6"
+                >
+                    <div className="flex items-center gap-2 px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-mono font-bold">
+                        <Hash className="w-3 h-3" />
+                        V2.4
+                    </div>
+                    <span className="text-xs font-mono text-gray-400 tracking-wide group-hover:text-white transition-colors uppercase">
+                        LEARNING CENTER // READY TO DEPLOY
+                    </span>
+                </motion.div>
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[0.9] text-white mb-6">
+                  Master the{" "}
+                  <span className="relative inline-block text-6xl md:text-8xl lg:text-9xl font-black">
+                    <span className="relative inline-block">
+                      CRAFT
+                      {/* Glitch effect layers */}
+                      <span className="absolute inset-0 text-primary opacity-70 blur-[2px] animate-pulse" aria-hidden="true">
+                        CRAFT
+                      </span>
+                      <span className="absolute inset-0 text-cyan-400 translate-x-0.5 translate-y-0.5 opacity-50" aria-hidden="true">
+                        CRAFT
+                      </span>
+                    </span>
+                  </span>
                 </h1>
-                <p className="text-gray-400 text-lg leading-relaxed max-w-xl">
-                  Access world-class curriculum and interactive coding challenges. 
-                  Switch between structured learning and hands-on practice.
+                <p className="text-lg md:text-xl text-muted-foreground max-w-xl font-light leading-relaxed">
+                  Initialize your learning sequence with advanced curriculum.
+                  <span className="text-white font-medium"> Interactive Exercises</span>, 
+                  <span className="text-white font-medium"> Live Code Editor</span>, and 
+                  <span className="text-white font-medium"> Progress Tracking</span>.
                 </p>
+                
+                {/* Stats row */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex gap-6 mt-8"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-white">{courses.length}</div>
+                      <div className="text-xs text-gray-500 uppercase">Courses</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+                      <Code2 className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-white">{exercises.length}</div>
+                      <div className="text-xs text-gray-500 uppercase">Challenges</div>
+                    </div>
+                  </div>
+                </motion.div>
             </motion.div>
 
             <motion.div 
@@ -339,47 +473,71 @@ export default function LearnPage() {
               transition={{ delay: 0.2 }}
               className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-end"
             >
-                 {/* Tab Switcher */}
-                <div className="p-1 bg-white/5 rounded-xl border border-white/10 flex w-full sm:w-auto">
+                 {/* Cyber Tab Switcher matching Hero */}
+                <div className="p-1 bg-white/5 border border-white/10 rounded flex w-full sm:w-auto backdrop-blur-sm">
                     <button 
                         onClick={() => setActiveTab('courses')}
-                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                        className={`relative group px-6 py-2.5 font-mono text-sm font-bold tracking-wider transition-all flex items-center justify-center gap-2 ${
                             activeTab === 'courses' 
-                            ? 'bg-primary text-white shadow-lg shadow-primary/20' 
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'text-black' 
+                            : 'text-white'
                         }`}
                     >
-                        <BookOpen className="w-4 h-4" />
-                        Courses
+                        {/* Background */}
+                        <div className={`absolute inset-0 transition-all duration-300 ${
+                            activeTab === 'courses'
+                                ? "bg-white"
+                                : "bg-white/5 hover:bg-white/10"
+                        }`} />
+                        
+                        {/* Shine Effect */}
+                        {activeTab === 'courses' && (
+                            <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                        )}
+
+                        <BookOpen className="w-4 h-4 relative z-10" />
+                        <span className="relative z-10">COURSES</span>
                     </button>
                     <button 
                          onClick={() => setActiveTab('exercises')}
-                         className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                         className={`relative group px-6 py-2.5 font-mono text-sm font-bold tracking-wider transition-all flex items-center justify-center gap-2 ${
                             activeTab === 'exercises' 
-                            ? 'bg-primary text-white shadow-lg shadow-primary/20' 
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'text-black' 
+                            : 'text-white'
                         }`}
                     >
-                        <Code2 className="w-4 h-4" />
-                        Exercises
+                        {/* Background */}
+                        <div className={`absolute inset-0 transition-all duration-300 ${
+                            activeTab === 'exercises'
+                                ? "bg-white"
+                                : "bg-white/5 hover:bg-white/10"
+                        }`} />
+                        
+                        {/* Shine Effect */}
+                        {activeTab === 'exercises' && (
+                            <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                        )}
+
+                        <Code2 className="w-4 h-4 relative z-10" />
+                        <span className="relative z-10">EXERCISES</span>
                     </button>
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative w-full sm:w-72 group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-primary transition-colors" />
+                {/* Cyber Search Bar */}
+                <div className="relative w-full sm:w-80">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 z-10" />
                     <input 
                         type="text" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={`Search ${activeTab}...`} 
-                        className="w-full pl-10 h-12 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:ring-1 focus:ring-primary/50 focus:border-primary/50 outline-none transition-all hover:bg-white/10"
+                        placeholder={`SEARCH_${activeTab.toUpperCase()}...`} 
+                        className="w-full pl-11 pr-4 h-12 bg-white/5 border border-white/10 text-white placeholder:text-gray-500 placeholder:font-mono placeholder:text-xs focus:border-white/30 outline-none transition-all hover:bg-white/10 backdrop-blur-sm font-mono text-sm"
                     />
                 </div>
             </motion.div>
         </div>
 
-        {/* Content Area */}
+        {/* Enhanced Content Area */}
         <AnimatePresence mode="wait">
             {activeTab === 'courses' ? (
                 <motion.div
@@ -388,16 +546,33 @@ export default function LearnPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
                 >
-                    {filteredCourses.map((course) => (
-                        <CourseCard key={course.id} course={course} />
+                    {filteredCourses.map((course, idx) => (
+                        <motion.div
+                          key={course.id}
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                        >
+                          <CourseCard course={course} />
+                        </motion.div>
                     ))}
                     {filteredCourses.length === 0 && (
-                        <div className="col-span-full py-20 text-center text-gray-500">
-                            <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                            <p>No courses found matching "{searchQuery}"</p>
-                        </div>
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="col-span-full py-32 text-center text-gray-500"
+                        >
+                            <Search className="w-16 h-16 mx-auto mb-6 opacity-20" />
+                            <p className="text-xl">No courses found matching "{searchQuery}"</p>
+                            <button 
+                              onClick={() => setSearchQuery("")}
+                              className="mt-4 px-6 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-sm"
+                            >
+                              Clear search
+                            </button>
+                        </motion.div>
                     )}
                 </motion.div>
             ) : (
@@ -407,22 +582,28 @@ export default function LearnPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-20rem)]"
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-20rem)]"
                 >
-                     {/* Exercise List Sidebar */}
+                     {/* Enhanced Exercise List Sidebar */}
                     <div className="lg:col-span-4 flex flex-col gap-4 h-full overflow-hidden">
-                         <div className="flex items-center justify-between px-1 mb-2">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Challenge List</span>
-                            <span className="text-xs text-primary">{filteredExercises.length} Available</span>
+                         <div className="flex items-center justify-between px-2 mb-2">
+                            <span className="text-sm font-black text-white uppercase tracking-wider">Challenge List</span>
+                            <span className="text-xs text-primary font-bold bg-primary/10 px-3 py-1 rounded-full border border-primary/20">{filteredExercises.length} Available</span>
                          </div>
-                         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                             {filteredExercises.map((ex) => (
-                                 <ExerciseCard 
-                                    key={ex.id} 
-                                    exercise={ex} 
-                                    isActive={selectedExercise.id === ex.id} 
-                                    onClick={() => setSelectedExercise(ex)}
-                                 />
+                         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3">
+                             {filteredExercises.map((ex, idx) => (
+                                 <motion.div
+                                   key={ex.id}
+                                   initial={{ opacity: 0, x: -20 }}
+                                   animate={{ opacity: 1, x: 0 }}
+                                   transition={{ delay: idx * 0.05 }}
+                                 >
+                                   <ExerciseCard 
+                                      exercise={ex} 
+                                      isActive={selectedExercise.id === ex.id} 
+                                      onClick={() => setSelectedExercise(ex)}
+                                   />
+                                 </motion.div>
                              ))}
                              {filteredExercises.length === 0 && (
                                 <div className="py-10 text-center text-gray-500">

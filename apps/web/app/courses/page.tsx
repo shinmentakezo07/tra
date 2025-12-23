@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Search, Filter, ArrowRight, BookOpen, Clock, BarChart, Code2, Star, Sparkles } from "lucide-react";
+import { Search, Filter, ArrowRight, BookOpen, Clock, BarChart, Code2, Star, Sparkles, X } from "lucide-react";
+import { useState } from "react";
 
 const courses = [
   { 
@@ -74,6 +75,17 @@ const courses = [
 ];
 
 export default function CoursesPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         course.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLevel = !selectedLevel || course.level === selectedLevel;
+    return matchesSearch && matchesLevel;
+  });
+
   return (
     <div className="min-h-screen pt-24 px-4 pb-12 bg-[#050505] relative overflow-hidden">
       {/* Ambient Background */}
@@ -112,18 +124,97 @@ export default function CoursesPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-primary transition-colors" />
                     <input 
                         type="text" 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search courses..." 
-                        className="w-full pl-10 h-12 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:ring-2 ring-primary/50 focus:border-primary/50 outline-none transition-all hover:bg-white/10"
+                        className="w-full pl-10 pr-10 h-12 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:ring-2 ring-primary/50 focus:border-primary/50 outline-none transition-all hover:bg-white/10"
                     />
+                    {searchQuery && (
+                        <button 
+                            onClick={() => setSearchQuery("")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
-                <button className="h-12 w-12 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all">
-                    <Filter className="w-5 h-5" />
-                </button>
+                <div className="relative">
+                    <button 
+                        onClick={() => setShowFilterMenu(!showFilterMenu)}
+                        className={`h-12 px-4 flex items-center gap-2 rounded-xl border transition-all ${
+                            selectedLevel 
+                                ? "bg-primary/10 border-primary/30 text-primary" 
+                                : "border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/20"
+                        }`}
+                    >
+                        <Filter className="w-5 h-5" />
+                        {selectedLevel && <span className="text-sm font-medium">{selectedLevel}</span>}
+                    </button>
+                    {showFilterMenu && (
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                            className="absolute top-full mt-2 right-0 bg-[#0A0A0A] border border-white/10 rounded-xl p-2 shadow-2xl z-10 min-w-[180px]"
+                        >
+                            <div className="px-3 py-2 text-xs font-mono text-gray-500 uppercase">Level Filter</div>
+                            {["Beginner", "Intermediate", "Advanced"].map(level => (
+                                <button
+                                    key={level}
+                                    onClick={() => {
+                                        setSelectedLevel(level);
+                                        setShowFilterMenu(false);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                        selectedLevel === level 
+                                            ? "bg-primary/10 text-primary" 
+                                            : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                    }`}
+                                >
+                                    {level}
+                                </button>
+                            ))}
+                            {selectedLevel && (
+                                <button
+                                    onClick={() => {
+                                        setSelectedLevel(null);
+                                        setShowFilterMenu(false);
+                                    }}
+                                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors mt-1 border-t border-white/5"
+                                >
+                                    Clear Filter
+                                </button>
+                            )}
+                        </motion.div>
+                    )}
+                </div>
             </motion.div>
         </div>
 
+        {filteredCourses.length === 0 ? (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="col-span-full text-center py-20"
+            >
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 border border-white/10 mb-6">
+                    <Search className="w-8 h-8 text-gray-500" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">No courses found</h3>
+                <p className="text-gray-400 mb-6">Try adjusting your search or filters</p>
+                <button
+                    onClick={() => {
+                        setSearchQuery("");
+                        setSelectedLevel(null);
+                    }}
+                    className="px-6 py-3 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors"
+                >
+                    Clear all filters
+                </button>
+            </motion.div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courses.map((course, i) => (
+            {filteredCourses.map((course, i) => (
                 <motion.div
                     key={course.title}
                     initial={{ opacity: 0, y: 20 }}
@@ -188,6 +279,7 @@ export default function CoursesPage() {
                 </motion.div>
             ))}
         </div>
+        )}
       </div>
     </div>
   );

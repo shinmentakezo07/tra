@@ -4,7 +4,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/db";
 import { users, courses, lessons, progress, enrollments } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 import { signIn, signOut, auth } from "@/auth";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
@@ -61,12 +61,24 @@ export async function signup(prevState: State, formData: FormData) {
       password: hashedPassword,
     });
   } catch (error) {
+    console.error("Signup error:", error);
     return {
       message: "Database Error: Failed to Create Account.",
     };
   }
   
-  redirect("/login");
+  // Sign in the user immediately after signup
+  try {
+    await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    });
+  } catch (error) {
+    console.error("Auto-login error:", error);
+  }
+  
+  redirect("/dashboard");
 }
 
 export async function authenticate(
@@ -123,8 +135,16 @@ export async function getCourses() {
 }
 
 export async function getCourseBySlug(slug: string) {
+  // Backward-compatible aliases for older slugs used in the UI.
+  // Example: the Learn UI uses `react-19`, while the DB seed historically used `react-mastery`.
+  const aliases: Record<string, string> = {
+    "react-19": "react-mastery",
+  };
+
+  const normalized = aliases[slug] ?? slug;
+
   return await db.query.courses.findFirst({
-    where: eq(courses.slug, slug),
+    where: normalized === slug ? eq(courses.slug, slug) : or(eq(courses.slug, slug), eq(courses.slug, normalized)),
     with: {
       lessons: {
         orderBy: (lessons, { asc }) => [asc(lessons.order)],
