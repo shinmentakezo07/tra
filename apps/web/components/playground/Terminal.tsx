@@ -61,7 +61,10 @@ export default function Terminal({ onMount }: TerminalProps) {
       // Delay fit to ensure container is rendered
       setTimeout(() => fitAddon.fit(), 10);
 
-      term.writeln('\x1b[90m$ Ready\x1b[0m');
+      term.writeln('\x1b[1;36m╭─────────────────────────────────────╮\x1b[0m');
+      term.writeln('\x1b[1;36m│\x1b[0m  \x1b[1;32m✓\x1b[0m Terminal Ready                \x1b[1;36m│\x1b[0m');
+      term.writeln('\x1b[1;36m│\x1b[0m  Press Run or Ctrl+Enter to execute \x1b[1;36m│\x1b[0m');
+      term.writeln('\x1b[1;36m╰─────────────────────────────────────╯\x1b[0m');
       term.writeln('');
 
       xtermRef.current = term;

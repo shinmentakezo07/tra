@@ -325,11 +325,14 @@ export default function PlaygroundMain() {
     setActiveLang(lang);
     setCode(codeCache.current[lang] || LANGUAGES[lang].defaultCode);
     setIframeSrc("");
+    setExecutionTimeMs(0);
     
     if (terminalRef.current) {
       terminalRef.current.reset();
-      terminalRef.current.writeln(`\x1b[1;36m→ Switched to ${LANGUAGES[lang].name}\x1b[0m`);
-      terminalRef.current.writeln(`\x1b[90mPress Ctrl+Enter to run\x1b[0m\n`);
+      terminalRef.current.writeln('');
+      terminalRef.current.writeln(`\x1b[1;36m→ Language switched to ${LANGUAGES[lang].name}\x1b[0m`);
+      terminalRef.current.writeln(`\x1b[90mReady to execute. Press Run or Ctrl+Enter.\x1b[0m`);
+      terminalRef.current.writeln('');
     }
   };
 
@@ -356,9 +359,14 @@ export default function PlaygroundMain() {
   const resetCode = () => {
     setCode(LANGUAGES[activeLang].defaultCode);
     codeCache.current[activeLang] = LANGUAGES[activeLang].defaultCode;
+    setExecutionTimeMs(0);
+    setIframeSrc("");
     if (terminalRef.current) {
       terminalRef.current.reset();
-      terminalRef.current.writeln(`\x1b[1;33m↺ Code reset to default\x1b[0m\n`);
+      terminalRef.current.writeln('');
+      terminalRef.current.writeln(`\x1b[1;33m↺ Code reset to default template\x1b[0m`);
+      terminalRef.current.writeln(`\x1b[90mReady to execute.\x1b[0m`);
+      terminalRef.current.writeln('');
     }
   };
 
@@ -397,9 +405,15 @@ export default function PlaygroundMain() {
       return;
     }
 
+    // Wait a bit for terminal to be ready
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     if (terminalRef.current) {
       terminalRef.current.reset();
-      terminalRef.current.writeln(`\x1b[1;33m⚡ Running ${currentLang.name}...\x1b[0m\n`);
+      terminalRef.current.writeln(`\x1b[1;33m⚡ Running ${currentLang.name}...\x1b[0m`);
+      terminalRef.current.writeln('');
+    } else {
+      console.warn('Terminal not ready yet');
     }
 
     try {
@@ -413,6 +427,10 @@ export default function PlaygroundMain() {
         })
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json();
       const executionTime = Date.now() - startTime;
       setExecutionTimeMs(executionTime);
@@ -423,17 +441,30 @@ export default function PlaygroundMain() {
           const stderr = result.run.stderr || "";
           
           if (stdout) {
-            terminalRef.current.write(stdout.replace(/\n/g, '\r\n'));
+            // Write output line by line with proper formatting
+            const lines = stdout.split('\n');
+            lines.forEach((line: string, index: number) => {
+              if (terminalRef.current) {
+                terminalRef.current.write(line);
+                if (index < lines.length - 1) {
+                  terminalRef.current.write('\r\n');
+                }
+              }
+            });
           }
+          
           if (stderr) {
-            terminalRef.current.writeln(`\r\n\x1b[1;31m${stderr.replace(/\n/g, '\r\n')}\x1b[0m`);
+            terminalRef.current.writeln('');
+            terminalRef.current.writeln(`\x1b[1;31m${stderr.replace(/\n/g, '\r\n')}\x1b[0m`);
           }
           
           const exitCode = result.run.code;
           const statusColor = exitCode === 0 ? '32' : '31';
           const statusIcon = exitCode === 0 ? '✓' : '✗';
           
-          terminalRef.current.writeln(`\r\n\x1b[1;${statusColor}m${statusIcon} Exit: ${exitCode}\x1b[0m \x1b[90m(${executionTime}ms)\x1b[0m`);
+          terminalRef.current.writeln('');
+          terminalRef.current.writeln('');
+          terminalRef.current.writeln(`\x1b[1;${statusColor}m${statusIcon} Exit Code: ${exitCode}\x1b[0m \x1b[90m(Execution time: ${executionTime}ms)\x1b[0m`);
           
           setExecutionHistory(prev => [...prev.slice(-9), {
             language: currentLang.name,
@@ -446,11 +477,17 @@ export default function PlaygroundMain() {
           if (result.message) {
             terminalRef.current.writeln(`\x1b[90m${result.message}\x1b[0m`);
           }
+          console.error('Piston API error:', result);
         }
+      } else {
+        console.error('Terminal not available to display output');
       }
     } catch (error) {
+      console.error('Code execution error:', error);
       if (terminalRef.current) {
-        terminalRef.current.writeln(`\x1b[1;31m✗ Network error: ${error}\x1b[0m`);
+        terminalRef.current.writeln('');
+        terminalRef.current.writeln(`\x1b[1;31m✗ Error: ${error instanceof Error ? error.message : String(error)}\x1b[0m`);
+        terminalRef.current.writeln(`\x1b[90mPlease check your internet connection or try again.\x1b[0m`);
       }
     } finally {
       setIsRunning(false);
