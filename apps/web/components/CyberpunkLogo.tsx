@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Zap, Cpu, Scan } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export const CyberpunkLogo = () => {
+export const CyberpunkLogo = ({ className }: { className?: string }) => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
